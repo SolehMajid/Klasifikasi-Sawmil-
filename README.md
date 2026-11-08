@@ -12,7 +12,7 @@ Aplikasi web pemantauan dan klasifikasi suara lingkungan secara kontinu dan real
 * **Spesifikasi Model:**
   * File Model: `model_terbaik_klasifikasi_audio.joblib`
   * Algoritma: `RandomForestClassifier` (Scikit-Learn)
-  * Ukuran Model: **±58 KB** (Model sudah disertakan langsung di dalam repositori ini, tidak memerlukan unduhan eksternal).
+  * Ukuran Model: **±360 KiB** (Model sudah disertakan langsung di dalam repositori ini, tidak memerlukan unduhan eksternal).
 * **Ekstraksi Fitur:** 74 Fitur Audio Librosa (MFCC 20 koefisien, Chroma STFT 12 nada, Spectral Centroid, Spectral Bandwidth, Spectral Rolloff, Zero Crossing Rate, RMS) dengan normalisasi adaptif (*Automatic Gain Control*).
 * **Sliding Window:** Durasi analisis 2.5 detik per window dengan pergeseran *hop* 0.5 detik.
 
@@ -20,29 +20,31 @@ Aplikasi web pemantauan dan klasifikasi suara lingkungan secara kontinu dan real
 
 ## 2. Cara Menjalankan Aplikasi (Deployment Docker)
 
-Sesuai instruksi pengujian lab, aplikasi ini dapat langsung dibangun dan dijalankan hanya dengan **satu perintah**:
+Docker Engine dan Docker Compose v2 harus sudah terpasang dan berjalan. Di Windows, instal Docker Desktop lalu tunggu sampai status Docker menunjukkan **Running**. Di server Proxmox/Linux, pastikan Docker Engine dan plugin Compose terpasang.
 
 ### Langkah 1: Kloning Repositori
 ```bash
-git clone <URL_REPOSITORY_GITHUB_ANDA>
-cd <NAMA_FOLDER_REPOSITORY>
+git clone https://github.com/SolehMajid/Klasifikasi-Sawmil-.git
+cd Klasifikasi-Sawmil-
 ```
 
-### Langkah 2: Jalankan via Docker Compose
+### Langkah 2: Build dan jalankan
 ```bash
 docker compose up --build
 ```
 > **Catatan:** Docker akan otomatis mengunduh base image Python, memasang pustaka sistem Linux audio (`libsndfile1` & `ffmpeg`), memasang seluruh dependensi dari `requirements.txt`, dan menjalankan server Flask pada port 5000.
 
 ### Langkah 3: Akses Dashboard
-Buka peramban web (*browser*) dan arahkan ke:
-* **Lokal:** [http://localhost:5000](http://localhost:5000) atau [http://127.0.0.1:5000](http://127.0.0.1:5000)
-* **Server Lab (Proxmox):** `http://<IP_SERVER_PROXMOX>:5000`
+Buka [http://localhost:5000](http://localhost:5000) di browser. Untuk server Proxmox, buka `http://<IP_SERVER_PROXMOX>:5000` jika port 5000 diizinkan oleh firewall.
 
-Untuk menghentikan kontainer:
+Untuk menghentikan aplikasi, tekan `Ctrl+C`, lalu jalankan:
 ```bash
 docker compose down
 ```
+
+Jika port 5000 sudah digunakan, ubah hanya sisi kiri pemetaan port, misalnya `"5001:5000"`, lalu akses `http://localhost:5001`.
+
+> **Akses mikrofon:** Browser mengizinkan akses mikrofon pada `localhost`. Jika membuka aplikasi dari komputer lain melalui alamat IP server, browser biasanya mewajibkan HTTPS. Untuk penggunaan jarak jauh, gunakan HTTPS melalui reverse proxy atau akses lokal saat pengujian.
 
 ---
 
@@ -54,13 +56,13 @@ Aplikasi telah dilengkapi proteksi kredensial menggunakan berkas `.env`. Templat
 | :--- | :--- | :--- |
 | `HOST` | `0.0.0.0` | Host binding server Flask di dalam container |
 | `PORT` | `5000` | Port aplikasi web |
-| `WA_NOTIFICATION_ENABLED` | `True` | Mengaktifkan/menonaktifkan peringatan WhatsApp |
+| `WA_NOTIFICATION_ENABLED` | `false` | Mengaktifkan/menonaktifkan peringatan WhatsApp |
 | `WA_METHOD` | `webhook` | Metode pengiriman notifikasi (`webhook` atau `fonnte`) |
 | `WEBHOOK_URL` | - | URL endpoint bot WhatsApp |
 | `WEBHOOK_SECRET` | - | Kunci otorisasi rahasia bot |
 | `WA_TARGET_PHONE` | - | Nomor WhatsApp tujuan notifikasi |
 
-> *Jika berkas `.env` tidak disediakan saat pengujian dosen/asisten lab, aplikasi tetap akan berjalan normal pada port 5000.*
+> Tanpa berkas `.env`, dashboard dan fitur klasifikasi tetap berjalan. Notifikasi WhatsApp tidak aktif sampai kredensialnya dikonfigurasi. Untuk mengaktifkannya, salin `.env.example` menjadi `.env`, isi URL/token dan nomor tujuan yang valid, lalu jalankan ulang `docker compose up --build`. Jangan unggah `.env` ke GitHub.
 
 ---
 
@@ -83,9 +85,10 @@ Aplikasi telah dilengkapi proteksi kredensial menggunakan berkas `.env`. Templat
 ```text
 ├── Dockerfile              # Resep build container Linux & audio libraries
 ├── docker-compose.yml      # Konfigurasi container runner & port mapping 5000:5000
+├── .dockerignore           # Mencegah file lokal dan rahasia masuk ke image
 ├── requirements.txt        # Daftar pustaka Python yang dibutuhkan
 ├── app.py                  # Aplikasi backend Flask, ring buffer & inferensi ML
-├── model_terbaik_klasifikasi_audio.joblib # Model ML Random Forest (±58 KB)
+├── model_terbaik_klasifikasi_audio.joblib # Model ML Random Forest (±360 KiB)
 ├── templates/
 │   └── index.html          # Frontend dashboard responsif (Anti-Slop UI)
 ├── .env.example            # Template konfigurasi environment yang aman

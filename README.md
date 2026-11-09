@@ -68,6 +68,8 @@ Aplikasi telah dilengkapi proteksi kredensial menggunakan berkas `.env`. Templat
 
 > Tanpa berkas `.env`, dashboard dan fitur klasifikasi tetap berjalan. Notifikasi WhatsApp tidak aktif sampai kredensialnya dikonfigurasi. Untuk mengaktifkannya, salin `.env.example` menjadi `.env`, isi URL/token dan nomor tujuan yang valid, lalu jalankan ulang `docker compose up --build`. Jangan unggah `.env` ke GitHub.
 
+> Penghitung **Durasi Sawmill Kontinu** tetap berjalan saat notifikasi WhatsApp nonaktif. Pengiriman WhatsApp baru dicoba setelah deteksi Sawmill berlangsung setidaknya 10 detik dan `WA_NOTIFICATION_ENABLED=true`.
+
 ---
 
 ## 4. Panduan Singkat Pengujian Fitur

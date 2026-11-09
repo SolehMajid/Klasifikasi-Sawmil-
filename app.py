@@ -371,9 +371,9 @@ def run_inference_on_window(audio_window):
         prob_non_pct = round((1.0 - smooth_p) * 100, 1)
         conf_val = prob_saw_pct if stbl_label == "Sawmill" else prob_non_pct
 
-        # Evaluasi Durasi Deteksi Sawmill Kontinu untuk Notifikasi WhatsApp (>= 10 detik)
+        # Hitung durasi deteksi terlepas dari apakah notifikasi WhatsApp diaktifkan.
         now_time = time.time()
-        if WA_NOTIFICATION_ENABLED and stbl_label == "Sawmill" and not is_silent:
+        if stbl_label == "Sawmill" and not is_silent:
             with wa_lock:
                 if wa_state['sawmill_start_time'] is None:
                     wa_state['sawmill_start_time'] = now_time
@@ -381,13 +381,14 @@ def run_inference_on_window(audio_window):
                 sawmill_duration = round(now_time - wa_state['sawmill_start_time'], 1)
                 wa_state['consecutive_seconds'] = sawmill_duration
 
-                cooldown_passed = (now_time - wa_state['last_alert_time']) >= NOTIFICATION_COOLDOWN
-                if sawmill_duration >= SAWMILL_TRIGGER_DURATION and (not wa_state['alert_sent_for_session'] or cooldown_passed):
-                    wa_state['alert_sent_for_session'] = True
-                    wa_state['last_alert_time'] = now_time
-                    wa_state['last_status_message'] = f"Mengirim notif ({sawmill_duration}s)..."
-                    print(f"[ALERT] Sawmill terdeteksi kontinu {sawmill_duration}s! Mengirim notifikasi WhatsApp...", flush=True)
-                    send_whatsapp_alert(sawmill_duration, conf_val, prob_saw_pct, round(raw_rms, 4))
+                if WA_NOTIFICATION_ENABLED:
+                    cooldown_passed = (now_time - wa_state['last_alert_time']) >= NOTIFICATION_COOLDOWN
+                    if sawmill_duration >= SAWMILL_TRIGGER_DURATION and (not wa_state['alert_sent_for_session'] or cooldown_passed):
+                        wa_state['alert_sent_for_session'] = True
+                        wa_state['last_alert_time'] = now_time
+                        wa_state['last_status_message'] = f"Mengirim notif ({sawmill_duration}s)..."
+                        print(f"[ALERT] Sawmill terdeteksi kontinu {sawmill_duration}s! Mengirim notifikasi WhatsApp...", flush=True)
+                        send_whatsapp_alert(sawmill_duration, conf_val, prob_saw_pct, round(raw_rms, 4))
         else:
             with wa_lock:
                 wa_state['sawmill_start_time'] = None

@@ -48,6 +48,10 @@ Jika port 5000 sudah digunakan, ubah hanya sisi kiri pemetaan port, misalnya `"5
 
 ---
 
+### Klasifikasi dari file audio
+
+Jalankan aplikasi seperti biasa dengan `python app.py` atau Docker Compose, lalu buka **Klasifikasi dari File** dari dashboard (atau kunjungi `/upload`). Unggah file WAV, MP3, FLAC, OGG, atau M4A berukuran maksimal 25 MB dan berdurasi minimal 2,5 detik. Sistem memakai model dan ekstraksi fitur yang sama dengan streaming, menganalisis potongan audio 2,5 detik dengan hop 0,5 detik, lalu menampilkan rata-rata probabilitasnya. Proses upload tidak mengubah status streaming atau mengirim notifikasi WhatsApp.
+
 ## 3. Konfigurasi Lingkungan (Environment Variables)
 
 Aplikasi telah dilengkapi proteksi kredensial menggunakan berkas `.env`. Template konfigurasi tersedia pada berkas `.env.example`:
@@ -75,8 +79,6 @@ Aplikasi telah dilengkapi proteksi kredensial menggunakan berkas `.env`. Templat
      * Gelombang osiloskop akan bereaksi secara real-time.
      * Bilah **Durasi Sawmill Kontinu** akan mulai menghitung (`0.5s -> 1.0s -> ... -> 10.0s`).
      * Jika suara sawmill bertahan terus selama **≥ 10 detik**, status notifikasi WhatsApp akan berubah menjadi `Terkirim` dan pesan peringatan otomatis dikirimkan.
-2. **Pengujian Notifikasi Cepat:**
-   * Klik tombol **"Tes Notif WA"** pada kontrol dashboard untuk memverifikasi jalur pengiriman pesan ke WhatsApp tanpa menunggu 10 detik.
 
 ---
 
@@ -88,9 +90,11 @@ Aplikasi telah dilengkapi proteksi kredensial menggunakan berkas `.env`. Templat
 ├── .dockerignore           # Mencegah file lokal dan rahasia masuk ke image
 ├── requirements.txt        # Daftar pustaka Python yang dibutuhkan
 ├── app.py                  # Aplikasi backend Flask, ring buffer & inferensi ML
+├── upload_classifier.py    # Route klasifikasi file audio
 ├── model_terbaik_klasifikasi_audio.joblib # Model ML Random Forest (±360 KiB)
 ├── templates/
-│   └── index.html          # Frontend dashboard responsif (Anti-Slop UI)
+│   ├── index.html          # Frontend dashboard streaming responsif
+│   └── upload.html         # Halaman upload dan hasil klasifikasi audio
 ├── .env.example            # Template konfigurasi environment yang aman
 ├── .gitignore              # Daftar berkas yang diabaikan Git (.env, cache, dll)
 └── README.md               # Dokumentasi dan petunjuk menjalankan proyek

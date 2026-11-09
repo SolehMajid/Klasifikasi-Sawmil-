@@ -125,6 +125,16 @@
             flex-wrap: wrap;
         }
 
+        .upload-link {
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .upload-link:hover {
+            border-color: var(--border-focus);
+            color: var(--border-focus);
+        }
+
         .pill-badge {
             display: inline-flex;
             align-items: center;
@@ -594,6 +604,7 @@
                 <p>Deteksi Kontinu Suara Mesin Sawmill vs Suara Lingkungan</p>
             </div>
             <div class="header-meta">
+                <a class="pill-badge upload-link" href="/upload">Klasifikasi dari File</a>
                 <div class="pill-badge" role="status" aria-label="Status Streaming">
                     <span id="streamDot" class="indicator-dot" aria-hidden="true"></span>
                     <span id="streamStatusText">Streaming Nonaktif</span>
@@ -666,15 +677,6 @@
                         </span>
                         <span>Reset Status</span>
                     </button>
-                    <button id="btnTestWA" type="button" class="btn-action btn-secondary" aria-label="Uji coba kirim pesan notifikasi WhatsApp melalui Webhook">
-                        <span aria-hidden="true">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 2L11 13"></path>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
-                        </span>
-                        <span id="btnTestWALabel">Tes Notif WA</span>
-                    </button>
                 </div>
 
                 <!-- PANDUAN PENGUJIAN -->
@@ -697,7 +699,7 @@
                         </svg>
                         Klasifikasi &amp; Stabilisasi
                     </h2>
-                    <div class="panel-header-badge">Model: LightGBM</div>
+                    <div class="panel-header-badge">Model: Random Forest</div>
                 </div>
 
                 <!-- PREDIKSI TERSTABILKAN (HERO BANNER) -->
@@ -841,8 +843,6 @@
         const acousticStateLabel = document.getElementById('acousticStateLabel');
         const sawmillDurationLabel = document.getElementById('sawmillDurationLabel');
         const waStatusLabel = document.getElementById('waStatusLabel');
-        const btnTestWA = document.getElementById('btnTestWA');
-        const btnTestWALabel = document.getElementById('btnTestWALabel');
         const probSawText = document.getElementById('probSawText');
         const probNonText = document.getElementById('probNonText');
         const barSaw = document.getElementById('barSaw');
@@ -1184,29 +1184,6 @@
                 valBandwidth.innerText = '- Hz';
             } catch (e) {
                 console.error("Gagal melakukan reset:", e);
-            }
-        });
-
-        // 8. Tombol Uji Notifikasi WhatsApp
-        btnTestWA.addEventListener('click', async () => {
-            btnTestWALabel.innerText = 'Mengirim...';
-            btnTestWA.disabled = true;
-            try {
-                const resp = await fetch('/api/test_wa', { method: 'POST' });
-                const res = await resp.json();
-                if (res.success) {
-                    waStatusLabel.innerText = 'Tes terkirim';
-                    alert('Notifikasi uji coba berhasil dikirim ke antrean Webhook WhatsApp.');
-                } else {
-                    waStatusLabel.innerText = 'Gagal';
-                    alert('Gagal mengirim: ' + (res.error || 'Terjadi kesalahan'));
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Kesalahan koneksi ke server: ' + err.message);
-            } finally {
-                btnTestWALabel.innerText = 'Tes Notif WA';
-                btnTestWA.disabled = false;
             }
         });
     </script>

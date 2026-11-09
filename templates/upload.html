@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klasifikasi Audio dari File</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0a0e17;
+            --panel: #121824;
+            --inset: #0e141f;
+            --border: #232e3e;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --blue: #38bdf8;
+            --green: #6ee7b7;
+            --red: #fca5a5;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 32px 16px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        main { width: min(100%, 760px); margin: 0 auto; }
+        a { color: var(--blue); }
+
+        .top-link { display: inline-block; margin-bottom: 20px; text-decoration: none; }
+        .top-link:hover { text-decoration: underline; }
+
+        .card {
+            padding: 28px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--panel);
+        }
+
+        h1 { margin: 0; font-size: clamp(1.5rem, 4vw, 2rem); }
+        .subtitle { margin: 8px 0 24px; color: var(--muted); }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--inset);
+            color: var(--text);
+        }
+
+        button {
+            margin-top: 16px;
+            padding: 11px 18px;
+            border: 0;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover { background: #1d4ed8; }
+        button:focus-visible, a:focus-visible, input:focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: 3px;
+        }
+
+        .hint { margin: 12px 0 0; color: var(--muted); font-size: 0.9rem; }
+        .message { margin-top: 20px; padding: 14px; border-radius: 8px; }
+        .error { border: 1px solid #7f1d1d; background: #351b24; color: var(--red); }
+        .result { border: 1px solid #334155; background: var(--inset); }
+        .result h2 { margin: 0 0 16px; }
+        .result.sawmill { border-color: #ef4444; }
+        .result.safe { border-color: #10b981; }
+        .prediction { margin: 0 0 14px; font-size: 1.4rem; font-weight: 800; }
+        .sawmill .prediction { color: var(--red); }
+        .safe .prediction { color: var(--green); }
+        dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+        dl div { padding: 12px; border: 1px solid var(--border); border-radius: 8px; }
+        dt { color: var(--muted); font-size: 0.82rem; }
+        dd { margin: 4px 0 0; font-family: 'JetBrains Mono', monospace; }
+
+        @media (max-width: 520px) {
+            .card { padding: 20px; }
+            dl { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="top-link" href="/">← Kembali ke monitoring streaming</a>
+        <section class="card" aria-labelledby="page-title">
+            <h1 id="page-title">Klasifikasi Audio dari File</h1>
+            <p class="subtitle">Unggah rekaman untuk mendeteksi suara Sawmill atau lingkungan.</p>
+
+            <form method="post" enctype="multipart/form-data">
+                <label for="audio">Pilih file audio</label>
+                <input id="audio" name="audio" type="file" accept=".wav,.mp3,.flac,.ogg,.m4a,audio/*" required>
+                <p class="hint">Format WAV, MP3, FLAC, OGG, atau M4A. Maksimal 25 MB, durasi minimal 2,5 detik.</p>
+                <button type="submit">Upload dan Klasifikasikan</button>
+            </form>
+
+            {% if error %}
+            <div class="message error" role="alert">{{ error }}</div>
+            {% endif %}
+
+            {% if result %}
+            <section class="message result {{ 'sawmill' if result.label == 'Sawmill' else 'safe' }}" aria-live="polite">
+                <h2>Hasil Klasifikasi</h2>
+                <p class="prediction">{{ result.label }}</p>
+                <dl>
+                    <div><dt>Keyakinan</dt><dd>{{ result.confidence }}%</dd></div>
+                    <div><dt>Durasi audio</dt><dd>{{ result.duration }} detik</dd></div>
+                    <div><dt>Probabilitas Sawmill</dt><dd>{{ result.sawmill_percent }}%</dd></div>
+                    <div><dt>Probabilitas Non-Sawmill</dt><dd>{{ result.non_sawmill_percent }}%</dd></div>
+                    <div><dt>Window dianalisis</dt><dd>{{ result.windows }}</dd></div>
+                    <div><dt>File</dt><dd>{{ result.filename }}</dd></div>
+                </dl>
+            </section>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

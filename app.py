@@ -15,6 +15,7 @@ import joblib
 import requests
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
+from upload_classifier import create_upload_blueprint
 
 # Muat variabel environment dari .env jika ada
 load_dotenv()
@@ -328,6 +329,15 @@ def extract_features_sliding(y, sr=SAMPLE_RATE, n_mfcc=20):
 
     return features, raw_rms, is_silent
 
+app.register_blueprint(create_upload_blueprint(
+    model=model,
+    feature_extractor=extract_features_sliding,
+    feature_columns=FEATURE_COLUMNS,
+    sample_rate=SAMPLE_RATE,
+    window_samples=WINDOW_SAMPLES,
+    hop_samples=HOP_SAMPLES,
+))
+
 # ==============================================================================
 # 4. INFERENCE PIPELINE TERPISAH (NON-BLOCKING)
 # ==============================================================================
@@ -569,20 +579,6 @@ def get_live_state():
         }
     return jsonify(data)
 
-@app.route('/api/test_wa', methods=['POST'])
-def test_wa():
-    """Endpoint manual untuk menguji Webhook WhatsApp dengan satu klik."""
-    try:
-        send_whatsapp_alert(
-            duration=10.0,
-            confidence=95.0,
-            prob_sawmil=98.5,
-            rms=0.045
-        )
-        return jsonify({'success': True, 'message': 'Pesan tes sedang dikirim ke Webhook WhatsApp'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
 @app.route('/api/reset', methods=['POST'])
 def reset_state():
     ring_buffer.reset()
@@ -605,20 +601,6 @@ def reset_state():
     return jsonify({'success': True, 'message': 'State berhasil direset'})
 
 if __name__ == '__main__':
-    # Mode uji cepat WhatsApp via terminal: python app.py --test-wa
-    if '--test-wa' in sys.argv:
-        print("=================================================================")
-        print("  PENGUJIAN LANGSUNG NOTIFIKASI WHATSAPP")
-        print(f"  Metode: {WA_METHOD}")
-        print(f"  Target: {WA_TARGET_PHONE}")
-        print(f"  URL   : {WEBHOOK_URL}")
-        print("=================================================================")
-        send_whatsapp_alert(duration=10.0, confidence=95.0, prob_sawmil=98.5, rms=0.045)
-        print("[INFO] Menunggu respons server webhook (3 detik)...")
-        time.sleep(3)
-        print("[INFO] Selesai! Silakan cek WhatsApp Anda.")
-        sys.exit(0)
-
     print("=================================================================")
     print("  AUDIO MONITORING & DETECTION (SAWMIL VS NON-SAWMIL)")
     print("  Sliding Window: 2.5s | Hop: 0.5s | Sample Rate: 22050 Hz")

@@ -5,10 +5,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "8024:8024"
     environment:
       HOST: 0.0.0.0
-      PORT: "5000"
+      PORT: "8024"
       WA_NOTIFICATION_ENABLED: ${WA_NOTIFICATION_ENABLED:-false}
       WA_METHOD: ${WA_METHOD:-webhook}
       WEBHOOK_URL: ${WEBHOOK_URL:-}
